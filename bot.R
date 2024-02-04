@@ -6,7 +6,9 @@ library("readr")
 library("RSQLite")
 library("gmailr")
 library("stringr")
-library("dplyr")
+# library("dplyr")
+library("tidyverse")
+library("tictoc")
 
 options(encoding = 'WINDOWS-1252')
 
