@@ -75,10 +75,10 @@ scheduled_task <- function() {
   }
 }
 
-repeat {
-  tic()
-  scheduled_task()
-  Sys.sleep(3600)  # every 60 min.
-  toc()
-}
+# repeat {
+#   tic()
+#   scheduled_task()
+#   Sys.sleep(3600)  # every 60 min.
+#   toc()
+# }
 

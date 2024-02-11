@@ -110,7 +110,7 @@ start <- function(bot, updates) {
   bot_s$sendMessage(
     chat_id = config$telegram_bot_groupid_status$id,
     text = paste0(
-      '<b>Start new dialog from</b> ',
+      '<b>Start new dialog Robin Hood from </b> ',
       updates[[length(updates)]]$message$from$username,
       ' in ',
       Sys.time()
@@ -227,34 +227,72 @@ vid_tren <- function(bot, updates) {
   date_tren <- read_sheet(key, sheet = "date", range = "A:F")
   date_tren$row_num <- seq.int(nrow(date_tren))
   date_tren <- date_tren[is.na(date_tren$status_zapisi),]
+  date_tren$diff <- data.frame(as.numeric(difftime(date_tren$date, Sys.Date(), units = "days")))
+  date_tren <- date_tren[date_tren$diff >= 1, ]
   
-  keys <-
-    lapply(1:nrow(date_tren), function(x)
-      list(KeyboardButton(
-        paste0(
-          date_tren$date[x],
-          " ",
-          date_tren$day_week[x],
-          " ",
-          date_tren$time[x],
-          " ",
-          date_tren$trainer[x]
-        )
-      )))
+  if (nrow(date_tren) > 0) {
+    
+    keys <-
+      lapply(1:nrow(date_tren), function(x)
+        list(KeyboardButton(
+          paste0(
+            date_tren$date[x],
+            " ",
+            date_tren$day_week[x],
+            " ",
+            date_tren$time[x],
+            " ",
+            date_tren$trainer[x]
+          )
+        )))
+    
+    RKM <- ReplyKeyboardMarkup(
+      keyboard = keys,
+      resize_keyboard = F,
+      one_time_keyboard = TRUE
+    )
+    
+    bot$sendMessage(
+      chat_id = updates[[length(updates)]]$from_chat_id(),
+      text = paste0("Хороший выбор, давай выберем дату,время и тренера"),
+      reply_markup = RKM
+    )
+    
+    set_state(chat_id = updates[[length(updates)]]$from_chat_id(), state = 'wait_zapis')
+    
+  } else {
+    
+    IKM <- InlineKeyboardMarkup(inline_keyboard = list(
+      list(
+        InlineKeyboardButton("Записать на тренеровку", callback_data = "trenirovka")
+      ),
+      list(
+        InlineKeyboardButton("Записать на пробное занятие с инструктором", callback_data = "probnaya")
+      ),
+      list(
+        InlineKeyboardButton("Купить/продлить абонимент на тренировки", callback_data = "abonement")
+      ),
+      list(
+        InlineKeyboardButton("Оплатить хранение инвентаря", callback_data = "inventar")
+      ),
+      list(
+        InlineKeyboardButton("google.com", url = "google.com")
+      )
+    ))
+    
+    bot$sendMessage(
+      updates[[length(updates)]]$message$chat_id,
+      text = paste0("Ой, кажеться нет свободных дней.
+                    \nВы можтете воспользоваться другими услугами или позвонить нам по телефону 3331555551, а такде посетить наш сайт."),
+      reply_markup = IKM
+    )
+    
+    set_state(chat_id = updates[[length(updates)]]$from_chat_id(), state = 'start')
+    
+  }
   
-  RKM <- ReplyKeyboardMarkup(
-    keyboard = keys,
-    resize_keyboard = F,
-    one_time_keyboard = TRUE
-  )
   
-  bot$sendMessage(
-    chat_id = updates[[length(updates)]]$from_chat_id(),
-    text = paste0("Хороший выбор, давай выберем дату,время и тренера"),
-    reply_markup = RKM
-  )
   
-  set_state(chat_id = updates[[length(updates)]]$from_chat_id(), state = 'wait_zapis')
   
 }
 
